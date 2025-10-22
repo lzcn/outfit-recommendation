@@ -1,0 +1,5 @@
+data_mode: "ItemTriplet"
+data_param: { mp_workers: 4 }
+pos_mode: "Fix"
+neg_mode: "RandomMix"
+neg_param: { ratio: 1, type_aware: true }

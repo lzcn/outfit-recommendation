@@ -1,0 +1,18 @@
+defaults:
+  - /data/dataset@compatibility.data.dataset: pointwise_randmix
+  - _self_
+
+compatibility:
+  num_runs: ${task.num_runs}
+  load_pretrained: ${task.load_pretrained}
+  device: ${task.device}
+  data:
+    data_root: ${data.data_root}
+    readers: ${data.readers}
+    partition: ${data.partition}
+    batch_size: ${data.batch_size}
+    num_workers: ${data.num_workers}
+    num_users: ${data.num_users}
+    num_types: ${data.num_types}
+    max_items: ${data.max_items}
+    phase: test

@@ -1,0 +1,15 @@
+# @package model
+_target_: models.bilstm.BiLSTM
+backbone: ??
+embed_dim: 512
+hidden_dim: 512
+num_layers: 1
+dropout: 0.3
+use_nn_feature: False
+semantic_dim: 2400
+word_embedding: False
+use_vse: False
+vse_dim: 300
+margin: 0.2
+loss_weight: { f_loss: 1.0, b_loss: 1.0 }
+max_items: ${data.max_items}

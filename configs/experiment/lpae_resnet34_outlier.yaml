@@ -1,0 +1,12 @@
+# @package _global_
+defaults:
+  - override /data: maryland_polyvore
+  - override /data/readers: resnet34_nn
+  - override /data/dataset@data.train.dataset: outlier_randreplace
+  - override /data/dataset@data.valid.dataset: outlier_randreplace
+  - override /data/dataset@data.test.dataset: outlier_randreplace
+  - override /model: lpae/model_d
+  - override /optimizer: sgd
+  - override /scheduler: plateau
+  - override /task: outlier
+  - _self_

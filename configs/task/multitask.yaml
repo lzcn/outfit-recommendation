@@ -1,0 +1,15 @@
+defaults:
+  - base
+  - eval:
+      - compatibility
+      - fitb
+      - group_fitb
+      - outlier
+  - _self_
+
+name: multitask
+stage: train
+monitor_metric: auc
+num_epochs: 200
+display_interval: 50
+summary_interval: 200

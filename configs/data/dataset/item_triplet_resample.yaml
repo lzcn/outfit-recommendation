@@ -1,0 +1,10 @@
+# resample for new user profile
+data_mode: ItemTriplet
+pos_mode: Resample
+pos_param:
+  num_outfits: 10
+  sample_once: true
+neg_mode: RandomMix
+neg_param:
+  ratio: 1
+  type_aware: true

@@ -1,0 +1,10 @@
+defaults:
+  - base
+  - _self_
+
+data_root: /home/zhi/outfit-datasets/iqon-3000/processed
+partition: iqon-550
+num_users: 550
+num_types: 8
+max_items: 8
+batch_size: 256

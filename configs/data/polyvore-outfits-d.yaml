@@ -1,0 +1,9 @@
+defaults:
+  - base
+  - _self_
+
+data_root: /home/zhi/outfit-datasets/polyvore-outfits/processed
+partition: disjoint
+num_types: 11
+max_items: 16
+batch_size: 64

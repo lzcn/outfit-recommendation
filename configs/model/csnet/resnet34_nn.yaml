@@ -1,0 +1,19 @@
+defaults:
+  - type_aware/base
+  - backbone: resnet34 # backbone for feature extractor
+  - _self_
+
+embd_dim: 128
+l2_embed: true
+learned_metric: false # pairwise distance using fc
+margin: 0.2
+dropout: 0.2
+linear_mask: false # type-aware embedding using fc
+learned_mask: true # learn mask
+preinit_mask: false # pre-init or random-init for mask
+use_nn_feature: true
+loss_weight:
+  triplet: 1.0
+  l1reg: 5.0e-4
+  l2reg: 5.0e-4
+  sim: 5.0e-4

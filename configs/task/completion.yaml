@@ -1,0 +1,10 @@
+defaults:
+  - base
+  - _self_
+
+name: completion
+stage: train
+monitor_metric: accuracy
+num_epochs: 200
+display_interval: 50
+summary_interval: 200

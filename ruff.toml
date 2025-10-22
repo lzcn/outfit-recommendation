@@ -1,0 +1,44 @@
+# Ruff configuration file
+# https://docs.astral.sh/ruff/
+
+# Set the maximum line length to 120
+line-length = 120
+
+target-version = "py311"
+
+[lint]
+# Enable only essential rule sets (more relaxed)
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+]
+
+# Ignore specific rules for a more relaxed configuration
+ignore = [
+    "E501",  # line too long (handled by line-length setting)
+    "E402",  # module level import not at top of file
+    "E731",  # do not assign a lambda expression, use a def
+    "W291",  # trailing whitespace
+    "W293",  # blank line contains whitespace
+    "F841",  # local variable assigned but never used
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+# Exclude common directories
+[lint.per-file-ignores]
+"__init__.py" = ["F401", "F403"]  # Allow unused imports and star imports in __init__.py files
+
+[format]
+# Use double quotes for strings
+quote-style = "double"
+
+# Indent with spaces
+indent-style = "space"
+
+# Use Unix-style line endings
+line-ending = "lf"

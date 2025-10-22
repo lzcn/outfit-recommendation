@@ -1,0 +1,3 @@
+data_mode: "PositiveOutfit"
+pos_mode: "Resample"
+pos_param: { num_outfits: 10, sample_once: true }

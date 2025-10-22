@@ -1,0 +1,24 @@
+defaults:
+  - backbone: resnet34 # backbone for feature extractor
+  - _self_
+
+_target_: models.lpae_multitask.LPAENet
+num_users: ${data.num_users}
+num_types: ${data.num_types}
+embd_dim: 128
+num_anchors: 1
+use_g_anchors: true
+use_u_anchors: true
+use_g_lambda: false
+use_u_lambda: false
+num_points: 0
+num_sab: 2
+num_seeds: 1
+num_heads: 4
+kappa_i: 10.0
+logdet: false
+type_encoding: learnable
+loss_type: "n-pair"
+# loss_weight: { nll_c: 1.0, nll_d: 1.0, cl_o: 1.0, cl_u: null, reg: 1.0e-2 }
+loss_weight: { nll_c: 1.0, nll_d: 1.0, cl_o: 1.0, cl_u: null, reg: null }
+use_nn_feature: true

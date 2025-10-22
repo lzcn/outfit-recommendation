@@ -1,0 +1,14 @@
+defaults:
+  - base
+  - _self_
+
+name: new_user
+stage: train
+new_user: closed_form
+monitor_metric: auc
+num_epochs: 200
+display_interval: 50
+summary_interval: 200
+
+# example:
+# python main.py +experiment=lpae_resnet34 task/new_user='closed_form' task/eval='fitb' ...

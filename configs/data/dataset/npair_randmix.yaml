@@ -1,0 +1,8 @@
+data_mode: NPairOutfit
+data_param:
+  mp_workers: 4
+pos_mode: Fix
+neg_mode: RandomMix
+neg_param:
+  ratio: 32
+  type_aware: true

@@ -1,0 +1,8 @@
+data_mode: GroupFITB
+data_param:
+  mp_workers: 4
+pos_mode: Fix
+neg_mode: FITB
+neg_param:
+  ratio: 3
+  type_aware: true

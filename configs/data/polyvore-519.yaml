@@ -1,0 +1,10 @@
+defaults:
+  - base
+  - _self_
+
+data_root: /home/zhi/outfit-datasets/polyvore-u/processed
+partition: original/tuples_519
+num_users: 519
+max_items: 4
+num_types: 3
+batch_size: 256

@@ -1,0 +1,5 @@
+name: fitb
+stage: test
+load_pretrained: null
+device: 0
+num_runs: 5

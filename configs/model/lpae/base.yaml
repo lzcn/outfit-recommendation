@@ -1,0 +1,28 @@
+# @package model
+_target_: ??
+embd_dim: 128
+num_users: ${data.num_users}
+num_types: ${data.num_types}
+# vision encoder config
+backbone: ??
+type_encoding: learnable
+use_nn_feature: true
+use_dense_h: false
+use_dense_d: false
+use_dense_o: false
+# anchors
+num_anchors: 1
+use_g_anchors: true
+use_u_anchors: true
+use_g_lambda: false
+use_u_lambda: false
+kappa: 10.0
+# set transformer parameters
+num_points: 0
+num_sab: 2
+num_seeds: 1
+num_heads: 4
+# loss parameters
+logdet: false
+loss_type: "n-pair"
+loss_weight: { nll_c: 1.0, nll_d: 1.0, cl_o: 1.0, cl_u: null, reg: null }

@@ -1,0 +1,18 @@
+# @package _global_
+defaults:
+  - override /data: maryland_polyvore
+  - override /data/readers: resnet34_nn
+  - override /data/dataset@data.train.dataset: completion
+  - override /data/dataset@data.valid.dataset: completion
+  - override /data/dataset@data.test.dataset: completion
+  - override /model: lpae/model_c
+  - override /optimizer: sgd
+  - override /scheduler: plateau
+  - override /task: completion
+  - _self_
+
+data:
+  train:
+    dataset:
+      data_param:
+        num_answers: 32

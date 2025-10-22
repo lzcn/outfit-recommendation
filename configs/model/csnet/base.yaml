@@ -1,0 +1,24 @@
+# @package model
+_target_: models.csn.CSNet
+backbone: ??
+embd_dim: 512
+l2_embed: false
+learned_metric: false
+linear_mask: false
+learned_mask: true
+preinit_mask: false
+margin: 0.2
+dropout: 0.2
+num_types: ${data.base.num_types}
+use_nn_feature: false
+word_embedding: false
+semantic_dim: 2400
+vse_dim: 128
+use_vse: false
+vse_margin: 0.2
+loss_weight:
+  triplet: 1.0
+  l1reg: 5.0e-4
+  l2reg: 5.0e-4
+  sim: 5.0e-4
+  vse: 1.0

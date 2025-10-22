@@ -1,0 +1,12 @@
+# @package _global_
+defaults:
+  - override /data: maryland_polyvore
+  - override /data/readers: resnet34_nn
+  - override /data/dataset@data.train.dataset: positive_default
+  - override /data/dataset@data.valid.dataset: pointwise_randmix
+  - override /data/dataset@data.test.dataset: pointwise_randmix
+  - override /model: bilstm/resnet34_nn
+  - override /optimizer: sgd
+  - override /scheduler: plateau
+  - override /task: compatibility
+  - _self_

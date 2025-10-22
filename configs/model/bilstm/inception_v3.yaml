@@ -1,0 +1,4 @@
+defaults:
+  - bilstm/base
+  - backbone: inception_v3
+  - _self_

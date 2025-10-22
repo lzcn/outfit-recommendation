@@ -1,0 +1,7 @@
+defaults:
+  - optional eval: ??
+stage: test
+load_pretrained: null
+num_runs: 5
+device: 0
+name: base

@@ -1,0 +1,25 @@
+defaults:
+  - csnet/base
+  - backbone: resnet18
+  - _self_
+
+embd_dim: 128
+dropout: 0.2
+l2_embed: true
+learned_metric: false # pairwise distance using fc
+margin: 0.2
+linear_mask: false # type-aware embedding using fc
+learned_mask: true
+preinit_mask: false
+use_nn_feature: false
+use_vse: true
+word_embedding: false
+semantic_dim: 2400
+vse_dim: 512
+vse_margin: 0.2
+loss_weight:
+  triplet: 1.0
+  l1reg: 5.0e-4
+  l2reg: 5.0e-4
+  sim: 5.0e-4
+  vse: 1.0

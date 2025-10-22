@@ -1,0 +1,7 @@
+[
+  {
+    reader: TensorLMDB,
+    path: "${...base.data_root}/features/resnet34",
+    
+  },
+]

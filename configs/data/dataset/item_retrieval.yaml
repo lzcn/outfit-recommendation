@@ -1,0 +1,5 @@
+data_mode: Retrieval
+pos_mode: Fix
+neg_mode: Retrieval
+neg_param:
+  type_id: 0

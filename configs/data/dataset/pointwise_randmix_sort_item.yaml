@@ -1,0 +1,5 @@
+# sort items in positive outfits by type
+data_mode: "PointwiseOutfit"
+pos_mode: "Sorted"
+neg_mode: "RandomMix"
+neg_param: { ratio: 10, type_aware: true }

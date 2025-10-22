@@ -1,0 +1,12 @@
+defaults:
+  - bilstm/base
+  - backbone: resnet34
+  - _self_
+
+embed_dim: 128
+hidden_dim: 128
+num_layers: 1
+dropout: 0.2
+use_nn_feature: true
+use_vse: false
+loss_weight: { f_loss: 1.0, b_loss: 1.0 }

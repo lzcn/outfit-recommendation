@@ -1,0 +1,11 @@
+defaults:
+  - readers: ??
+
+data_root: ??
+partition: ??
+num_users: 1 # single user means no user personalization
+num_types: ??
+max_items: ??
+batch_size: ??
+num_workers: 4
+shuffle: false

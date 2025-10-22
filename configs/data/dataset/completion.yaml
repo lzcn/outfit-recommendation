@@ -1,0 +1,6 @@
+data_mode: OutfitCompletion
+data_param:
+  mp_workers: 4
+  num_answers: 4
+  type_aware: true
+  full_sample: true

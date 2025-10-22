@@ -1,0 +1,40 @@
+defaults:
+  - data: maryland_polyvore
+  - data/dataset@data.train.dataset: ??
+  - data/dataset@data.valid.dataset: ??
+  - data/dataset@data.test.dataset: ??
+  - model: bilstm/resnet34_nn
+  - optimizer: sgd
+  - scheduler: plateau
+  - task: compatibility
+  - _self_
+
+data:
+  base: &base
+    data_root: ${data.data_root}
+    readers: ${data.readers}
+    partition: ${data.partition}
+    batch_size: ${data.batch_size}
+    num_workers: ${data.num_workers}
+    num_users: ${data.num_users}
+    num_types: ${data.num_types}
+    max_items: ${data.max_items}
+
+  train:
+    <<: *base
+    phase: train
+    shuffle: true
+
+  valid:
+    <<: *base
+    phase: valid
+    shuffle: false
+
+  test:
+    <<: *base
+    phase: test
+    shuffle: false
+
+# hydra:
+#   run:
+#     dir: outputs/${hydra:runtime.choices.task}/${now:%Y-%m-%d_%H-%M-%S}
