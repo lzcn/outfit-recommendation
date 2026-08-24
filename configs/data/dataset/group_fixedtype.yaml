@@ -1,0 +1,11 @@
+data_mode: GroupFITB
+data_param:
+  mp_workers: 4
+  target_type: 0
+pos_mode: "FilterByType"
+pos_param:
+  target_type: ${..data_param.target_type}
+neg_mode: FixedTypeFITB
+neg_param:
+  ratio: 3
+  target_type: ${..data_param.target_type}

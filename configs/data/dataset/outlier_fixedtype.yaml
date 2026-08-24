@@ -1,0 +1,10 @@
+data_mode: "OutlierOutfit"
+data_param:
+  target_type: 0
+pos_mode: "FilterByType"
+pos_param:
+  target_type: ${..data_param.target_type}
+neg_mode: "FixedTypeReplace"
+neg_param:
+  ratio: 1
+  target_type: ${..data_param.target_type}

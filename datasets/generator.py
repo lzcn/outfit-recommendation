@@ -84,6 +84,46 @@ class Fix(Generator):
         return self.data
 
 
+class FilterByType(Generator):
+    """
+    Filter out outfits that do NOT contain a given target_type.
+
+    Keeps only tuples where at least one item has type == target_type.
+    """
+
+    def __init__(self, target_type: int, **kwargs):
+        super().__init__()
+        self.target_type = target_type
+
+    def run(self, data: np.ndarray) -> np.ndarray:
+        """Remove outfits that do not contain target_type."""
+        if data is None:
+            raise ValueError("data must be provided.")
+
+        # Split tuple structure
+        uids, sizes, items, types = utils.split_tuple(data)
+
+        keep_indices = []
+        for i, t in enumerate(types):
+            # Keep outfits that contain at least one item of the target type
+            if np.any(t[: sizes[i]] == self.target_type):
+                keep_indices.append(i)
+
+        if not keep_indices:
+            self.logger.warning(f"No outfits contain target_type={self.target_type}; returning empty array.")
+            return np.empty((0, data.shape[1]))
+
+        filtered = data[keep_indices]
+        self.logger.info(
+            f"Filtered outfits: kept {len(filtered)}/{len(data)} "
+            f"({len(filtered)/len(data):.1%}) with type={self.target_type}"
+        )
+        return filtered
+
+    def extra_repr(self) -> str:
+        return f"target_type={self.target_type}"
+
+
 class Identity(Generator):
     """A generator that returns the input tuples unchanged."""
 
@@ -449,6 +489,89 @@ class RandomReplace(Generator):
         return f"ratio={self.ratio}, num_repalce={self.num_replace}, type_aware={self.type_aware}"
 
 
+class FixedTypeReplace(Generator):
+    r"""
+    Replace exactly ONE item of a fixed target category in each outfit.
+
+    Unlike RandomReplace:
+    - We do NOT choose arbitrary indices.
+    - We ONLY replace items whose type == target_type.
+    - We always replace exactly one slot (no num_replace arg).
+    """
+
+    def __init__(self, ratio=1, target_type=0, **kwargs):
+        super().__init__()
+        self.ratio = ratio
+        self.target_type = target_type
+        # for clarity / logging
+        self.replace_type = f"fixed_type_{target_type}"
+
+    def run(self, data: np.ndarray) -> np.ndarray:
+        """Generate negative tuples by replacing one item of a fixed type.
+
+        Args:
+            data (np.ndarray): positive tuples with shape:
+                [uidx, size, item_0, ..., item_n, type_0, ..., type_n]
+
+        Returns:
+            np.ndarray: negative tuples with same tuple layout.
+        """
+        # copy & tile positives
+        data = data.copy().repeat(self.ratio, axis=0)
+
+        uids, pos_sizes, pos_items, pos_types = utils.split_tuple(data)
+        # item_list[t] -> all item ids of category t
+        item_pool_by_type = utils.get_item_list(data)
+        num_types = utils.infer_num_type(data)
+
+        # all original positive outfits as tuples to avoid duplicates
+        pos_set = set(map(tuple, pos_items))
+
+        neg_items = []
+        neg_types = []
+
+        for size, items, types in zip(pos_sizes, pos_items, pos_types):
+            candidate_idx = np.where(types[:size] == self.target_type)[0]
+
+            if len(candidate_idx) == 0:
+                raise ValueError(
+                    f"Outfit has no item of target_type={self.target_type}, " f"cannot apply FixedTypeReplace."
+                )
+
+            replace_index = int(np.random.choice(candidate_idx, 1)[0])
+
+            orig_item = items[replace_index]
+            orig_type = types[replace_index]
+
+            assert orig_type == self.target_type, f"Selected index type {orig_type} != target_type {self.target_type}"
+
+            trial_items = items.copy()
+            trial_types = types.copy()
+
+            # 这层 while 确保负例不是正例
+            while tuple(trial_items) in pos_set:
+                trial_items = items.copy()
+                trial_types = types.copy()
+
+                sampled_item = orig_item
+                while sampled_item == orig_item:
+                    sampled_item = np.random.choice(item_pool_by_type[self.target_type])
+
+                trial_items[replace_index] = sampled_item
+
+            neg_items.append(trial_items)
+            neg_types.append(trial_types)
+
+        neg_items = np.array(neg_items)
+        neg_types = np.array(neg_types)
+
+        neg_data = np.hstack((uids.reshape((-1, 1)), pos_sizes.reshape((-1, 1)), neg_items, neg_types))
+        return neg_data
+
+    def extra_repr(self) -> str:
+        return f"ratio={self.ratio}, target_type={self.target_type}"
+
+
 class FITB(Generator):
     r"""Replace one item in outfit."""
 
@@ -506,6 +629,98 @@ class FITB(Generator):
 
     def extra_repr(self) -> str:
         return f"ratio={self.ratio}, type_aware={self.type_aware}"
+
+
+class FixedTypeFITB(Generator):
+    r"""
+    FITB-style negative generator that only replaces an item
+    from a specific target_type.
+
+    For each positive outfit:
+      - choose one position whose type == target_type
+      - sample `ratio` alternative items of the SAME type
+      - replace that position with each sampled item
+
+    This is like FITB but constrained to a fixed semantic slot.
+    """
+
+    def __init__(self, ratio=1, target_type=0, **kwargs):
+        super().__init__()
+        self.ratio = ratio
+        self.target_type = target_type
+
+    def run(self, data: np.ndarray) -> np.ndarray:
+        """
+        Args:
+            data (np.ndarray): positive tuples
+                layout: [uidx, size, item_0, ..., item_n, type_0, ..., type_n]
+
+        Returns:
+            np.ndarray: negative tuples with the same layout,
+                        stacked for all outfits, with `ratio` rows per input.
+        """
+
+        # split incoming tuples
+        pos_uidxs, pos_sizes, pos_items, pos_types = utils.split_tuple(data)
+
+        # item_list[t] = array/list of item ids that belong to type t
+        item_list = utils.get_item_list(data)
+
+        neg_uidxs = pos_uidxs.repeat(self.ratio, axis=0).reshape((-1, 1))
+        neg_sizes = pos_sizes.repeat(self.ratio, axis=0).reshape((-1, 1))
+
+        neg_items = []
+        neg_types = []
+
+        for size, items, types in zip(pos_sizes, pos_items, pos_types):
+            # find which indices in this outfit are of the desired target_type
+            candidate_indices = np.where(types[:size] == self.target_type)[0]
+
+            if len(candidate_indices) == 0:
+                # This outfit doesn't have the required type to replace.
+                # You can choose to skip instead of raise if you prefer.
+                raise ValueError(
+                    f"Outfit has no item of target_type={self.target_type}, " "cannot generate TargetTypeFITB samples."
+                )
+
+            # choose ONE slot among items of this type to replace
+            replace_index = int(np.random.choice(candidate_indices, 1)[0])
+
+            # anchor/original item info
+            orig_item = items[replace_index]
+            orig_type = types[replace_index]
+            assert orig_type == self.target_type, "internal sanity check failed"
+
+            # we'll sample `ratio` distinct replacements
+            used_items = {orig_item}
+
+            for _ in range(self.ratio):
+                sampled_items = items.copy()
+                sampled_types = types.copy()
+
+                # sample a different item of the SAME target_type
+                new_item = orig_item
+                while new_item in used_items:
+                    new_item = np.random.choice(item_list[self.target_type])
+
+                # apply replacement at that slot
+                sampled_items[replace_index] = new_item
+                # sampled_types[replace_index] stays the same category (target_type)
+
+                used_items.add(new_item)
+
+                neg_items.append(sampled_items)
+                neg_types.append(sampled_types)
+
+        neg_items = np.array(neg_items)
+        neg_types = np.array(neg_types)
+
+        # stitch back into the [uidx, size, items..., types...] matrix
+        neg_data = np.hstack((neg_uidxs, neg_sizes, neg_items, neg_types))
+        return neg_data
+
+    def extra_repr(self) -> str:
+        return f"ratio={self.ratio}, target_type={self.target_type}"
 
 
 class Retrieval(Generator):

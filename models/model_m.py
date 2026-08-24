@@ -328,6 +328,9 @@ class MultiTaskModel(nn.Module):
         use_dense_h=False,
         use_dense_d=False,
         use_dense_o=False,
+        fine_tune_h=False,
+        fine_tune_d=False,
+        fine_tune_u=False,
         # anchors
         num_anchors: int = 1,
         use_g_anchors: bool = True,
@@ -383,6 +386,28 @@ class MultiTaskModel(nn.Module):
             use_u_lambda=use_u_lambda,
             kappa=kappa,
         )
+        if fine_tune_h:
+            # disbale all parameters except dense_h and anchors
+            for param in self.visual_encoder.parameters():
+                param.requires_grad = False
+            for param in self.visual_encoder.dense_h.parameters():
+                param.requires_grad = True
+            for param in self.anchors.parameters():
+                param.requires_grad = True
+        if fine_tune_d:
+            # disbale all parameters except dense_d and anchors
+            for param in self.visual_encoder.parameters():
+                param.requires_grad = False
+            for param in self.visual_encoder.dense_d.parameters():
+                param.requires_grad = True
+            for param in self.anchors.parameters():
+                param.requires_grad = True
+        if fine_tune_u:
+            # only fine-tune user anchors
+            for param in self.visual_encoder.parameters():
+                param.requires_grad = False
+            for name, param in self.anchors.named_parameters():
+                param.requires_grad = True
 
     def group_fitb(self, uidx, data, cate, index):
         batch, num_outfits, num_items, *shape = data.shape
@@ -522,6 +547,18 @@ class MultiTaskModel(nn.Module):
         metrics.update({"accuracy_d": acc_d.item(), "accuracy_c": acc_c.item(), "accuracy_r": acc_r.item()})
         return overall_loss, metrics
 
+    def train_compatibility(self, batch, device):
+        # batch_size
+        uidx = ops.to(batch["uidx"], device)
+        # batch_size x num_outfits x num_items
+        data = ops.to(batch["data"], device)
+        # batch_size x num_outfits x num_items
+        cate = ops.to(batch["cate"], device)
+        loss, accuracy = self.outfit_compatibility(uidx, data, cate)
+        overall_loss, metrics = ops.compute_weighted_losses(loss, self.loss_weight)
+        metrics["accuracy"] = accuracy.item()
+        return overall_loss, metrics
+
     @torch.no_grad()
     def eval_compatibility(self, batch, device):
         data = utils.to(batch["data"], device)
@@ -538,6 +575,16 @@ class MultiTaskModel(nn.Module):
         pool_cate = utils.to(batch["pool_cate"], device)
         return self.group_fitb(uidx, data, cate, pool_data, pool_cate)
 
+    def train_outlier(self, batch, device):
+        data = utils.to(batch["data"], device)
+        uidx = utils.to(batch["uidx"], device)
+        cate = utils.to(batch["cate"], device)
+        y = utils.to(batch["y"], device)
+        loss, accuracy = self.outlier_detection(uidx, data, cate, y)
+        overall_loss, metrics = utils.compute_weighted_losses(loss, self.loss_weight)
+        metrics["accuracy"] = accuracy.item()
+        return overall_loss, metrics
+
     @torch.no_grad()
     def eval_outlier(self, batch, device):
         data = utils.to(batch["data"], device)
@@ -545,6 +592,19 @@ class MultiTaskModel(nn.Module):
         cate = utils.to(batch["cate"], device)
         score = self.outlier_detection(uidx, data, cate)
         return score
+
+    def train_group_fitb(self, batch, device):
+        uidx = utils.to(batch["uidx"], device)
+        data = utils.to(batch["data"], device)
+        cate = utils.to(batch["cate"], device)
+        index = utils.to(batch["index"], device)
+
+        loss, accuracy = self.group_fitb(uidx, data, cate, index)
+
+        overall_loss, metrics = utils.compute_weighted_losses(loss, self.loss_weight)
+
+        metrics["accuracy"] = accuracy.item()
+        return overall_loss, metrics
 
     def eval_group_fitb(self, batch, device):
         uidx = utils.to(batch["uidx"], device)

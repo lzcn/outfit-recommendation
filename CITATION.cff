@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: "Unified Metric Learning for Personalized Fashion Recommendations with Fast User Adaptation"
+message: >-
+  If you use this software, please cite it using the
+  metadata provided.
+type: article
+authors:
+  - family-names: Lu
+    given-names: Zhi
+  - family-names: Hu
+    given-names: Yang
+  - family-names: Yu
+    given-names: Cong
+  - family-names: Chen
+    given-names: Yan
+  - family-names: Zeng
+    given-names: Bing
+doi: 10.1109/TMM.2026.3694502
+journal-title: IEEE Transactions on Multimedia
+pages: "1-14"
+year: 2026
+license: MIT

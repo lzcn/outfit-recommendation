@@ -2,7 +2,7 @@
 defaults:
   - override /data: maryland_polyvore
   - override /data/readers: resnet34_nn
-  - override /data/dataset@data.train.dataset: positive_default
+  - override /data/dataset@data.train.dataset: pointwise_offline
   - override /data/dataset@data.valid.dataset: positive_default
   - override /data/dataset@data.test.dataset: positive_default
   - override /model: lpae/resnet34_nn

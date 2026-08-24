@@ -74,9 +74,13 @@ class BaseOutfitData(object):
 
         self.data_param = data_param or {}
 
+        # save the initial data
+        self.ini_pos = pos_data
+        self.ini_neg = neg_data
+
+        # placeholders for current data
         self.pos_data = pos_data
         self.neg_data = neg_data
-        self.ini_data = pos_data
 
         self.num_type = utils.infer_num_type(pos_data) if pos_data is not None else 0
         self.max_size = utils.infer_max_size(pos_data) if pos_data is not None else self.max_size
@@ -114,7 +118,7 @@ class BaseOutfitData(object):
             if self._queue.full():
                 time.sleep(0.01)
                 continue
-            ini_data = self.ini_data
+            ini_data = self.ini_pos
             pos_data = self.pos_generator(ini_data) if self.pos_generator is not None else self.pos_data
             neg_data = self.neg_generator(pos_data) if self.neg_generator is not None else self.neg_data
             self._queue.put((pos_data, neg_data))
@@ -127,7 +131,7 @@ class BaseOutfitData(object):
             self.pos_data, self.neg_data = self._queue.get()
         else:
             if self.pos_generator is not None:
-                self.pos_data = self.pos_generator(self.ini_data)
+                self.pos_data = self.pos_generator(self.ini_pos)
             if self.neg_generator is not None:
                 self.neg_data = self.neg_generator(self.pos_data)
 
@@ -376,7 +380,7 @@ class PointwiseOutfit(BaseOutfitData):
 class PositiveOutfit(PointwiseOutfit):
     def build(self):
         self.logger.info("Generating positive tuples.")
-        self.pos_data = self.pos_generator(self.ini_data)
+        self.pos_data = self.pos_generator(self.ini_pos)
         self.logger.info("Positive tuples shape: {}".format(self.pos_data.shape))
         self.max_size = utils.infer_max_size(self.pos_data)
         self.sections = [1, 1, self.max_size, self.max_size]
@@ -522,7 +526,7 @@ class OutfitCompletion(PointwiseOutfit):
         num_answers = self.data_param.get("num_answers", 4)
         full_sample = self.data_param.get("full_sample", False)
         type_aware = self.data_param.get("type_aware", True)
-        ini_data = self.ini_data
+        ini_data = self.ini_pos
         pos_data = self.pos_generator(ini_data) if self.pos_generator is not None else self.pos_data
         num_questions = len(pos_data)
         pos_uidxs, pos_sizes, pos_items, pos_types = utils.split_tuple(pos_data)
@@ -671,10 +675,13 @@ class OutlierOutfit(PointwiseOutfit):
 
     def generate(self):
         type_aware = self.data_param.get("type_aware", True)
-        pos_data = self.pos_generator(self.ini_data) if self.pos_generator is not None else self.pos_data
+
+        pos_data = self.ini_pos if self.pos_generator is None else self.pos_generator(self.ini_pos)
+
         uidxs, sizes, pos_items, pos_types = utils.split_tuple(pos_data)
         item_list = utils.get_item_list(pos_data)
         num_types = utils.infer_num_type(pos_data)
+
         pos_set = set(map(tuple, pos_items))
         r_items = []
         r_types = []
@@ -729,7 +736,7 @@ class OutlierOutfit(PointwiseOutfit):
         else:
             if self.pos_generator is not None:
                 self.logger.info(f"Generating {self.phase} positive tuples.")
-                self.pos_data = self.pos_generator(self.ini_data)
+                self.pos_data = self.pos_generator(self.ini_pos)
                 self.logger.info("Positive tuples shape: {}".format(self.pos_data.shape))
                 self.num_type = utils.infer_num_type(self.pos_data)
                 self.max_size = utils.infer_max_size(self.pos_data)
@@ -978,7 +985,6 @@ class MultiTaskDataset(BaseOutfitData):
             data_g=group_fitb["data"],
             cate_g=group_fitb["cate"],
             index_g=group_fitb["index"],
-            
         )
 
     def __len__(self):

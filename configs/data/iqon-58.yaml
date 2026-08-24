@@ -2,7 +2,7 @@ defaults:
   - base
   - _self_
 
-data_root: /home/zhi/outfit-datasets/iqon-3000/processed
+data_root: data/iqon-3000
 partition: iqon-58
 num_users: 58
 num_types: 8

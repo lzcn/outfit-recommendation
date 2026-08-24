@@ -2,7 +2,7 @@ defaults:
   - base
   - _self_
 
-data_root: /home/zhi/outfit-datasets/polyvore-u/processed
+data_root: data/polyvore-u
 partition: original/tuples_53
 num_users: 53
 max_items: 3

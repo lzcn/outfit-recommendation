@@ -1,5 +1,22 @@
-outputs
-multirun
-checkpoints
-summaries
-.vscode
+# Experiment artifacts
+outputs/
+multirun/
+checkpoints/
+summaries/
+
+# Datasets (see README for expected layout)
+/data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+
+# Tooling caches
+.ruff_cache/
+.vscode/
+.idea/
+
+# OS
+.DS_Store

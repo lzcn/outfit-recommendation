@@ -2,7 +2,7 @@ defaults:
   - base
   - _self_
 
-data_root: /home/zhi/outfit-datasets/maryland-polyvore/processed
+data_root: data/maryland-polyvore
 partition: original
 num_types: 8
 max_items: 8

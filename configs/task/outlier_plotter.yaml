@@ -1,0 +1,7 @@
+stage: test
+load_pretrained: null
+device: 0
+name: outlier_plotter
+reader:
+  reader: "ImageLMDB"
+  path: "${data.data_root}/features/images_l"

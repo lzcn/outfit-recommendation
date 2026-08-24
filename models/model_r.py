@@ -209,9 +209,186 @@ class CompatibilityModel(nn.Module):
         logger.info(f"Closed-form new user modeling completed in {elapsed_time:.2f}s (avg {avg_time:.4f}s/user).")
 
     @torch.no_grad()
+    def build_new_user_omega_only(self, dataloader, device, n_outfits):
+        start_time = time.time()
+
+        omega = self.anchors.g_anchors.detach().to(device)
+        if omega.dim() == 3:  # (1,1,d)
+            omega = omega.squeeze(0)  # -> (1,d)
+        omega = omega / (omega.norm(dim=-1, keepdim=True) + 1e-12)  # L2
+
+        new_anchors = omega.unsqueeze(0).repeat(self.num_users, 1, 1)  # (U,1,d)
+        self.anchors.u_anchors = nn.Parameter(new_anchors)
+
+        elapsed = time.time() - start_time
+        logger.info(f"[omega_only] New user anchors built: {new_anchors.shape}. Time {elapsed:.2f}s.")
+
+    @torch.no_grad()
+    def build_new_user_shrink(self, dataloader, device, n_outfits=1, alpha=5.0, deterministic=False):
+        uidxs, features, labels = self.build_new_user_features(dataloader, device)
+        num_new_users = uidxs.max().item() + 1
+        start_time = time.time()
+
+        omega = self.anchors.g_anchors.detach().to(device)
+        if omega.dim() == 3:
+            omega = omega.squeeze(0)  # (1,d)
+        omega = omega / (omega.norm(dim=-1, keepdim=True) + 1e-12)
+
+        new_anchors = []
+        for u in range(num_new_users):
+            sel = ops.select_features(select_uidx=u, select_label=1, uidxs=uidxs, labels=labels)
+            feats = features[sel]  # (T,1,d)
+            if feats is not None and feats.numel() > 0:
+                if not deterministic and feats.shape[0] > n_outfits:
+                    idx = torch.randperm(feats.shape[0], device=feats.device)[:n_outfits]
+                    feats = feats[idx]
+                feats = F.normalize(feats, dim=-1)  # (k,1,d)
+                k = feats.shape[0]
+                mpos = feats.mean(dim=0)  # (1,d)
+                mu_hat = (k * mpos + alpha * omega) / (k + alpha)
+                mu = mu_hat / (mu_hat.norm(dim=-1, keepdim=True) + 1e-12)
+            else:
+                mu = omega.clone()
+            new_anchors.append(mu)
+
+        new_anchors = torch.stack(new_anchors, dim=0)  # (U,1,d)
+        self.anchors.u_anchors = nn.Parameter(new_anchors)
+
+        elapsed = time.time() - start_time
+        logger.info(
+            f"[shrink] New user anchors built: {new_anchors.shape} (alpha={alpha}, n_outfits={n_outfits}). "
+            f"Time {elapsed:.2f}s."
+        )
+
+    @torch.no_grad()
+    def build_new_user_rocchio(self, dataloader, device, n_outfits=1, alpha_p=1.0, alpha_n=0.5, deterministic=False):
+        uidxs, features, labels = self.build_new_user_features(dataloader, device)
+        num_new_users = uidxs.max().item() + 1
+        start_time = time.time()
+
+        omega = self.anchors.g_anchors.detach().to(device)
+        if omega.dim() == 3:
+            omega = omega.squeeze(0)  # (1,d)
+        omega = omega / (omega.norm(dim=-1, keepdim=True) + 1e-12)
+
+        new_anchors = []
+        for u in range(num_new_users):
+            pos_sel = ops.select_features(select_uidx=u, select_label=1, uidxs=uidxs, labels=labels)
+            neg_sel = ops.select_features(select_uidx=u, select_label=0, uidxs=uidxs, labels=labels)
+
+            pos = features[pos_sel] if pos_sel is not None else None
+            neg = features[neg_sel] if neg_sel is not None else None
+
+            if pos is not None and pos.numel() > 0 and (not deterministic) and pos.shape[0] > n_outfits:
+                idx = torch.randperm(pos.shape[0], device=pos.device)[:n_outfits]
+                pos = pos[idx]
+            if neg is not None and neg.numel() > 0 and (not deterministic) and neg.shape[0] > n_outfits:
+                idx = torch.randperm(neg.shape[0], device=neg.device)[:n_outfits]
+                neg = neg[idx]
+
+            have_pos = pos is not None and pos.numel() > 0
+            have_neg = neg is not None and neg.numel() > 0
+
+            if not have_pos and not have_neg:
+                mu = omega.clone()
+            else:
+                mpos = F.normalize(pos, dim=-1).mean(dim=0) if have_pos else torch.zeros_like(omega)  # (1,d)
+                mneg = F.normalize(neg, dim=-1).mean(dim=0) if have_neg else torch.zeros_like(omega)  # (1,d)
+                mu_raw = alpha_p * mpos - alpha_n * mneg
+                norm = mu_raw.norm(dim=-1, keepdim=True)
+                if torch.all(norm <= 1e-12):
+                    mu = omega.clone()
+                else:
+                    mu = mu_raw / (norm + 1e-12)
+
+            new_anchors.append(mu)
+
+        new_anchors = torch.stack(new_anchors, dim=0)  # (U,1,d)
+        self.anchors.u_anchors = nn.Parameter(new_anchors)
+
+        elapsed = time.time() - start_time
+        logger.info(
+            f"[rocchio] New user anchors built: {new_anchors.shape} (alpha_p={alpha_p}, alpha_n={alpha_n}, "
+            f"n_outfits={n_outfits}). Time {elapsed:.2f}s."
+        )
+
+    @torch.no_grad()
+    def build_new_user_ridge(
+        self,
+        dataloader,
+        device,
+        n_outfits=1,
+        ridge_lambda=5.0,
+        y_pos=1.0,
+        y_neg=-1.0,
+        lambda_global=1.0,
+        deterministic=False,
+    ):
+        uidxs, features, labels = self.build_new_user_features(dataloader, device)
+        num_new_users = uidxs.max().item() + 1
+        start_time = time.time()
+
+        omega = self.anchors.g_anchors.detach().to(device)
+        if omega.dim() == 3:
+            omega = omega.squeeze(0)  # (1,d)
+        omega = omega / (omega.norm(dim=-1, keepdim=True) + 1e-12)
+        omega_vec = omega.squeeze(0)  # (d,)
+
+        new_anchors = []
+        for u in range(num_new_users):
+            pos_sel = ops.select_features(select_uidx=u, select_label=1, uidxs=uidxs, labels=labels)
+            neg_sel = ops.select_features(select_uidx=u, select_label=0, uidxs=uidxs, labels=labels)
+
+            pos = features[pos_sel] if pos_sel is not None else None
+            neg = features[neg_sel] if neg_sel is not None else None
+
+            if pos is not None and pos.numel() > 0 and (not deterministic) and pos.shape[0] > n_outfits:
+                idx = torch.randperm(pos.shape[0], device=pos.device)[:n_outfits]
+                pos = pos[idx]
+            if neg is not None and neg.numel() > 0 and (not deterministic) and neg.shape[0] > n_outfits:
+                idx = torch.randperm(neg.shape[0], device=neg.device)[:n_outfits]
+                neg = neg[idx]
+
+            Z_rows, y_rows = [], []
+            if pos is not None and pos.numel() > 0:
+                pos = F.normalize(pos, dim=-1).squeeze(1)  # (k_pos,d)
+                Z_rows.append(pos)
+                y_rows.append(torch.full((pos.shape[0],), y_pos, device=device))
+            if neg is not None and neg.numel() > 0:
+                neg = F.normalize(neg, dim=-1).squeeze(1)  # (k_neg,d)
+                Z_rows.append(neg)
+                y_rows.append(torch.full((neg.shape[0],), y_neg, device=device))
+
+            if len(Z_rows) == 0:
+                mu = omega.clone()  # fallback
+            else:
+                Z = torch.cat(Z_rows, dim=0)  # (k,d)
+                y = torch.cat(y_rows, dim=0)  # (k,)
+                r = y - (Z @ (lambda_global * omega_vec))  # residuals (k,)
+                d = Z.shape[1]
+                A = Z.T @ Z + ridge_lambda * torch.eye(d, device=device)  # (d,d)
+                b = Z.T @ r  # (d,)
+                mu_vec = torch.linalg.solve(A, b.unsqueeze(-1)).squeeze(-1)  # (d,)
+                mu = mu_vec.unsqueeze(0)  # (1,d)
+                mu = mu / (mu.norm(dim=-1, keepdim=True) + 1e-12)
+
+            new_anchors.append(mu)
+
+        new_anchors = torch.stack(new_anchors, dim=0)  # (U,1,d)
+        self.anchors.u_anchors = nn.Parameter(new_anchors)
+
+        elapsed = time.time() - start_time
+        logger.info(
+            f"[ridge] New user anchors built: {new_anchors.shape} "
+            f"(lambda_global={lambda_global}, ridge_lambda={ridge_lambda}, "
+            f"n_outfits={n_outfits}). Time {elapsed:.2f}s."
+        )
+
+    @torch.no_grad()
     def build_new_user_adhoc(self, tdataloader, device, n_outfits=1):
         uidxs, features, labels = self.build_new_user_features(tdataloader, device)
         num_new_users = uidxs.max().item() + 1
+        start_time = time.time()
         num_old_users = self.anchors.num_users
         num_u_anchors = self.anchors.num_u_anchors
         anchor_pool = self.anchors.u_anchors.data  # num_users x num_anchors x d
@@ -245,7 +422,12 @@ class CompatibilityModel(nn.Module):
                 selected_anchors = anchor_pool[topk]  # num_u_anchors x d
             new_anchors.append(F.normalize(selected_anchors, dim=-1))
         new_anchors = torch.stack(new_anchors, dim=0)  # num_new_users x num_u_anchors x d
-        logger.info(f"New user anchors built: {new_anchors.shape} from {n_outfits} outfits each.")
+        elapsed = time.time() - start_time
+        logger.info(
+            f"[adhoc] New user anchors built: {new_anchors.shape} from {n_outfits} outfits each."
+            f" Time {elapsed:.2f}s. Each user avg {(elapsed / num_new_users):.4f}s."
+        )
+
         # reset user anchors
         self.anchors.u_anchors = nn.Parameter(new_anchors)
 

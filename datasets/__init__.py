@@ -1,11 +1,9 @@
 from . import dataloader, dataset, metrics, param, utils
-from .dataloader import OutfitDataModule, OutfitLoader
+from .dataloader import OutfitDataModule
 from .dataset import BaseOutfitData, getOutfitData
 from .datum import Datum, getDatum
 from .generator import Generator, getGenerator
 from .param import OutfitDataParam, OutfitLoaderParam, RunParam
-
-__version__ = "0.0.1"
 
 __all__ = [
     "BaseOutfitData",

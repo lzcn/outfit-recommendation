@@ -12,32 +12,29 @@ class NotComputableError(RuntimeError):
 
 
 class UserBundleMetric(object):
-    """Epoch metric for test engine.
+    """Epoch metric bundling multiple scoring functions.
 
     Args:
-        bundlers (dict): a bundler of functions for computing. The keywords are the
+        bundles (dict): a bundle of functions for computing. The keywords are the
             names of metrics and the functions are callable. Each function has the same
             signature, (posi: list, nega: list): -> float.
         output_transform (callable): convert a batch output to (scores, labels, uidxs)
-    Methods:
-        attach(engine, name=""): attach metric to an engine. If name is given, then
-            results are saved to engine.state.metrics[name]. Otherwise, update all
-            results to engine.state.metrics.
 
     Examples:
 
         .. code-block:: python
 
-            tester // test engine
-            bundles = dict(
-                accuracy=functional.pair_accuracy,
-                loss=functional.pair_rank_loss,
-                ndcg=functional.ndcg_score,
-                auc=functional.auc_score,
+            metric = UserBundleMetric(
+                bundles=dict(
+                    accuracy=functional.pair_accuracy,
+                    loss=functional.pair_rank_loss,
+                    ndcg=functional.ndcg_score,
+                    auc=functional.auc_score,
+                )
             )
-            metrics.EpochBundleMetric(bundles).attach(tester)
-            // run tester
-            assert tester.state.metric.keys() == bundlers.keys()
+            for batch in loader:
+                metric.update(batch)
+            results = metric.compute()
     """
 
     def __init__(self, bundles, output_transform=lambda x: x):
