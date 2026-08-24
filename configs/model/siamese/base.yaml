@@ -1,0 +1,10 @@
+# @package model
+_target_: models.baselines.SiameseNet
+backbone: ??
+embd_dim: 128
+feat_norm: true
+last_fc: true
+learned_metric: false
+margin: 0.2
+dropout: 0.2
+use_nn_feature: true

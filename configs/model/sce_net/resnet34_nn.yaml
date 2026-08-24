@@ -1,0 +1,12 @@
+defaults:
+  - sce_net/base
+  - backbone: resnet34 # backbone for feature extractor
+  - _self_
+
+embd_dim: 128
+num_concepts: 16
+learnedmask: true
+prein: false
+margin: 0.2
+dropout: 0.2
+use_nn_feature: true

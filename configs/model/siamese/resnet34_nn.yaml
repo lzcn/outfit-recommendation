@@ -1,0 +1,10 @@
+defaults:
+  - siamese/base
+  - backbone: resnet34 # backbone for feature extractor
+  - _self_
+
+embd_dim: 128
+learned_metric: false
+margin: 0.2
+dropout: 0.2
+use_nn_feature: true

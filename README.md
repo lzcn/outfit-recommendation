@@ -24,13 +24,13 @@ Requires Python >= 3.10. Everything runs from this repository alone; no other lo
 ```bash
 conda create -n lpae python=3.10 -y
 conda activate lpae
-pip install torch torchvision   # see https://pytorch.org for the CUDA build you need
+pip install torch torchvision   # install the CUDA build matching your system, see https://pytorch.org
 pip install -r requirements.txt
 ```
 
 ## Data
 
-Place the processed datasets (polyvore-u, iqon-3000, maryland-polyvore, polyvore-outfits) under `data/` in this repository. If the data lives elsewhere, pass `data.data_root=/path/to/<dataset>` on the command line.
+Place the processed datasets (polyvore-u, iqon-3000, maryland-polyvore, polyvore-outfits) under `data/` in this repository. If the data is stored elsewhere, pass `data.data_root=/path/to/<dataset>` on the command line.
 
 ## Run
 
@@ -54,13 +54,15 @@ python main.py \
   +experiment=lpae_resnet34_compatibility \
   data=polyvore-519 \
   model.num_points=8 model.use_dense_o=true model.use_g_lambda=true model.kappa=6.0 \
-  task.num_runs=10 task/eval="[compatibility]" \
+  task.stage=test task.num_runs=10 task/eval="[compatibility]" \
   task.load_pretrained=outputs/compatibility/polyvore-519/checkpoints/compatibility_best.pt \
   hydra.run.dir=outputs/compatibility/polyvore-519/evaluation \
   task.device=0
 ```
 
 Other tasks (outfit completion, group FITB, outlier detection, fast adaptation to new users) work the same way; see `configs/experiment/`.
+
+> Refactored with an LLM.
 
 ## License
 

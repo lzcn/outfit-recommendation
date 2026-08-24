@@ -1,5 +1,5 @@
 defaults:
-  - type_aware/base
+  - csnet/base
   - backbone: resnet34 # backbone for feature extractor
   - _self_
 
