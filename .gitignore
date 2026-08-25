@@ -5,7 +5,7 @@ checkpoints/
 summaries/
 
 # Datasets (see README for expected layout)
-/data/
+/data
 
 # Python
 __pycache__/

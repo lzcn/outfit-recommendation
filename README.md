@@ -30,7 +30,14 @@ pip install -r requirements.txt
 
 ## Data
 
-Place the processed datasets (polyvore-u, iqon-3000, maryland-polyvore, polyvore-outfits) under `data/` in this repository. If the data is stored elsewhere, pass `data.data_root=/path/to/<dataset>` on the command line.
+Download the processed datasets (polyvore-u, iqon-3000, maryland-polyvore, polyvore-outfits) from Hugging Face and place them under `data/` in this repository:
+
+```bash
+git lfs install
+git clone https://huggingface.co/datasets/lzcn/outfit-datasets data
+```
+
+No preprocessing is needed; the positive/negative outfit splits ship with the data. If the data is stored elsewhere, pass `data.data_root=/path/to/<dataset>` on the command line (or symlink `data` to the cloned folder).
 
 ## Run
 
