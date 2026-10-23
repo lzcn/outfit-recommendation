@@ -6,7 +6,7 @@ Tuple format (headerless CSV):
     [user_id, size, item_1, ..., item_n, type_1, ..., type_n]
 
     - user_id : int, user index
-    - size    : int, number of valid items (<= K)
+    - size    : int, number of valid items (<= n)
     - item    : int, index into `item_list` (padded -1)
     - type    : int, category index (padded -1)
     - n       : max outfit length, inferred as (cols - 2) // 2
@@ -16,8 +16,7 @@ Legacy format (no `size` column) is auto-converted.
 Note on `item_list`
 -------------------
 `item` is only an index; the real image/feature key is stored in `item_list`.
-This keeps tuples compact and enables fast outfit generation
-(just shuffle indices). To resolve to the raw data, load `item_list`.
+Use the category-specific lists in `items.json` to resolve indices to keys.
 """
 
 from __future__ import annotations
@@ -80,7 +79,7 @@ def load_outfit_tuples(path: str) -> np.ndarray:
         logger.debug("File %s does not exist", path)
         return None
     logger.debug("Loading tuples: %s", path)
-    arr = np.loadtxt(path, delimiter=",", dtype=int)
+    arr = np.loadtxt(path, delimiter=",", dtype=int, ndmin=2)
     arr = _upgrade_legacy(arr)
     return arr
 

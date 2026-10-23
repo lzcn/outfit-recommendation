@@ -3,12 +3,12 @@ defaults:
   - _self_
 
 name: new_user
-stage: train
+stage: test
 new_user: closed_form
+source_num_users: 519
+support_sizes: [1, 5, 10]
+num_runs: 50
 monitor_metric: auc
 num_epochs: 200
 display_interval: 50
 summary_interval: 200
-
-# example:
-# python main.py +experiment=lpae_resnet34 task/new_user='closed_form' task/eval='fitb' ...

@@ -5,7 +5,7 @@ defaults:
   - override /data/dataset@data.train.dataset: group_fitb
   - override /data/dataset@data.valid.dataset: group_fitb
   - override /data/dataset@data.test.dataset: group_fitb
-  - override /model: lpae/model_g
+  - override /model: model_g
   - override /optimizer: sgd
   - override /scheduler: plateau
   - override /task: group_fitb

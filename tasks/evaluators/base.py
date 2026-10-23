@@ -1,9 +1,4 @@
-"""
-Base evaluator class for all evaluation tasks.
-
-This module provides the abstract base class for all evaluators, handling
-common setup like model loading and data preparation.
-"""
+"""Model loading and repeated evaluation."""
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
@@ -42,7 +37,9 @@ class BaseEvaluator(ABC):
 
         pretrained = self.cfg.task.get("load_pretrained")
         if pretrained:
-            utils.load_pretrained(model, pretrained)
+            utils.load_pretrained(model, pretrained, strict=self.cfg.task.get("load_strict", True))
+        elif self.cfg.task.stage == "test":
+            raise ValueError("Evaluation requires task.load_pretrained=<checkpoint>; refusing random-weight results.")
 
         return model
 
@@ -61,14 +58,14 @@ class BaseEvaluator(ABC):
 
     @torch.no_grad()
     def evaluate(self, data_cfg=None, model=None) -> dict:
-        """Evaluate compatibility prediction performance.
+        """Evaluate the model over the configured trials.
 
         Args:
-            data_cfg: Optional data configuration (defaults to test config).
-            data_loader: Optional data loader (defaults to test loader).
+            data_cfg: Data configuration; defaults to the test split.
+            model: Model to evaluate; otherwise use the configured checkpoint.
 
         Returns:
-            Dictionary containing evaluation metrics (loss, ndcg, auc).
+            Metric names mapped to lists of per-trial values.
         """
         device = self.cfg.task.device
         num_runs = int(self.cfg.task.get("num_runs", 1))
@@ -78,13 +75,16 @@ class BaseEvaluator(ABC):
         data_loader = datasets.dataloader.OutfitDataModule(**data_cfg)
 
         # get model
-        model = model or self._build_model()
+        model = model if model is not None else self.model
+        model = model if model is not None else self._build_model()
+        self.model = model
         model.eval()
 
-        # self.call_model_hook("setup_for_evaluation", data_cfg, device)
+        self.call_model_hook("setup_for_evaluation", data_cfg, device)
 
         results = defaultdict(list)
         for run in range(num_runs):
+            utils.seed_everything(int(self.cfg.task.get("seed", 0)) + run)
             run_metrics = self.compute(model, data_loader, device, run)
             logger.info(f"Run[{run+1}] performance:")
             utils.log_metrics_table(f"Evaluation for {self.name()} Task", run_metrics, logger)

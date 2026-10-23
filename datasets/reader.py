@@ -14,6 +14,8 @@ from torchvision import transforms
 from datasets.param import DataReaderParam
 
 LOGGER = logging.getLogger(__name__)
+_LMDB_ENVS = {}
+_LMDB_PID = os.getpid()
 
 
 def _load_pkl_data(path):
@@ -24,9 +26,16 @@ def _load_pkl_data(path):
 
 
 def _open_lmdb_env(path):
-    path = os.path.expanduser(path)
-    return lmdb.open(path, readonly=True, lock=False, readahead=False, meminit=False)
-    return lmdb.open(path, max_readers=4, readonly=True, lock=False, readahead=False, meminit=False)
+    global _LMDB_PID
+    if _LMDB_PID != os.getpid():
+        for env in _LMDB_ENVS.values():
+            env.close()
+        _LMDB_ENVS.clear()
+        _LMDB_PID = os.getpid()
+    path = os.path.realpath(os.path.expanduser(path))
+    if path not in _LMDB_ENVS:
+        _LMDB_ENVS[path] = lmdb.open(path, readonly=True, lock=False, readahead=False, meminit=False)
+    return _LMDB_ENVS[path]
 
 
 class DataReader(metaclass=ABCMeta):
@@ -35,13 +44,19 @@ class DataReader(metaclass=ABCMeta):
     Args:
         path (str): Data path, format depends on reader type.
         data_transform (Callable, optional): Data transform function. Defaults to identity.
-        default (optional): Fallback value if key does not exist. Defaults to None.
+        default (optional): Value returned for a missing key. If None, raise KeyError.
     """
 
     def __init__(self, path: str, data_transform: Callable = None, default=None):
         self.default = default
         self.path = path
         self.data_transform = data_transform
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        if "_env" in state:
+            state["_env"] = None
+        return state
 
     @abstractmethod
     def load(self, key) -> Any:
@@ -58,6 +73,8 @@ class DataReader(metaclass=ABCMeta):
     def __call__(self, key):
         data = self.load(key)
         if data is None:
+            if self.default is None:
+                raise KeyError(f"Missing data key {key!r} in {self.path}")
             return self.default
         if self.data_transform is None:
             return data
@@ -84,8 +101,7 @@ class TensorLMDBReader(DataReader):
         Returns:
             torch.Tensor: Output tensor.
         """
-        if self._env is None:
-            self._env = _open_lmdb_env(self.path)
+        self._env = _open_lmdb_env(self.path)
         with self._env.begin(write=False) as txn:
             buf = txn.get(key.encode())
             if buf is None:
@@ -132,7 +148,7 @@ class ImageLMDBReader(DataReader):
 
     def __init__(self, path, data_transform=None, default=None):
         super().__init__(path, data_transform=data_transform, default=default)
-        self._env = _open_lmdb_env(path)
+        self._env = None
 
     def load(self, name: str) -> PIL.Image.Image:
         """Load image from LMDB using key-value storage.
@@ -143,6 +159,7 @@ class ImageLMDBReader(DataReader):
         Returns:
             PIL.Image.Image: Loaded image before transform.
         """
+        self._env = _open_lmdb_env(self.path)
         with self._env.begin(write=False) as txn:
             imgbuf = txn.get(name.encode())
             if imgbuf is None:
@@ -204,7 +221,7 @@ def _get_transforms(data_transform):
     elif isinstance(data_transform, Callable):
         return data_transform
     else:
-        return lambda x: x
+        return None
 
 
 def getReader(

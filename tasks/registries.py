@@ -1,9 +1,4 @@
-"""
-Task registries for trainers and evaluators.
-
-This module provides a simple registry pattern to register and retrieve
-trainer and evaluator classes by name.
-"""
+"""Registries for task trainers and evaluators."""
 
 from typing import Any, Dict, Type
 

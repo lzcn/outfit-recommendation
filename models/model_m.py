@@ -313,7 +313,7 @@ class Anchors(nn.Module):
 
 
 class MultiTaskModel(nn.Module):
-    """LPAE-Net."""
+    """Multi-task outfit composition model."""
 
     def __init__(
         self,
@@ -510,8 +510,8 @@ class MultiTaskModel(nn.Module):
             raise KeyError(f"Unknown loss type: {self.loss_type}")
 
         loss = {"cl_o": cl_o}
-        if self.loss_weight.get("reg") is not None and self.anchors_r.num_u_anchors > 1:
-            loss["reg"] = self.anchors_r.reg()
+        if self.loss_weight.get("reg") is not None and self.anchors.num_u_anchors > 1:
+            loss["reg"] = self.anchors.reg(use_logdet=self.logdet)
         return loss, accuracy
 
     def train_multitask(self, batch, device):

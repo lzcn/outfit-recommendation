@@ -1,9 +1,4 @@
-"""
-Compatibility trainer for outfit compatibility learning.
-
-This trainer handles the end-to-end training loop for compatibility models,
-including forward/backward passes, validation, logging, and checkpointing.
-"""
+"""Training and validation for the multi-task model."""
 
 import torch
 from omegaconf import OmegaConf
@@ -108,7 +103,7 @@ class MultitaskTrainer(BaseTrainer):
         # evaluate same task using single evaluator
         if len(eval_list) == 0:
             evaluator: BaseEvaluator = get_evaluator(task.name, cfg=self.cfg)
-            metrics = evaluator.compute(self.model, self.data.valid, task.device)
+            metrics = evaluator.compute(self.model, self.valid_loader, task.device)
             return metrics
         # evaluate multiple evaluators
         metrics = {}

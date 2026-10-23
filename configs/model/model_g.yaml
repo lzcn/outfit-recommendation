@@ -1,5 +1,5 @@
 defaults:
-  - lpae/base
+  - base
   - backbone: resnet34
   - _self_
 

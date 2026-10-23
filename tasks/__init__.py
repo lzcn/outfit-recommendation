@@ -1,9 +1,4 @@
-"""
-Tasks module for outfit recommendation.
-
-This module provides a registry-based system for trainers and evaluators.
-All trainer and evaluator modules are automatically discovered and registered.
-"""
+"""Import task modules and register their trainers and evaluators."""
 
 import importlib
 import pkgutil

@@ -1,0 +1,28 @@
+# @package _global_
+defaults:
+  - override /data: polyvore-32
+  - override /data/readers: resnet34_nn
+  - override /data/dataset@data.train.dataset: positive_default
+  - override /data/dataset@data.valid.dataset: positive_default
+  - override /data/dataset@data.test.dataset: positive_default
+  - override /model: model_r
+  - override /optimizer: sgd
+  - override /scheduler: plateau
+  - override /task: new_user
+  - _self_
+
+model:
+  num_users: ${task.source_num_users}
+  num_points: 4
+  use_dense_o: true
+  use_g_lambda: true
+
+data:
+  train:
+    shuffle: false
+  test:
+    dataset:
+      data_mode: PointwiseOutfit
+      pos_mode: Fix
+      neg_mode: RandomMix
+      neg_param: {ratio: 10, type_aware: true}

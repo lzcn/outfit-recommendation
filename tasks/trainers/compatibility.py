@@ -1,9 +1,4 @@
-"""
-Compatibility trainer for outfit compatibility learning.
-
-This trainer handles the end-to-end training loop for compatibility models,
-including forward/backward passes, validation, logging, and checkpointing.
-"""
+"""Training and validation for outfit compatibility."""
 
 import torch
 
@@ -16,20 +11,7 @@ logger = utils.get_logger(__name__)
 
 @register_trainer("compatibility")
 class CompatibilityTrainer(BaseTrainer):
-    """Trainer for outfit compatibility prediction.
-
-    Expects the model to implement two methods:
-
-        train_step(batch: dict, device: str) -> Tuple[torch.Tensor, dict]
-            Performs a single training step.
-            Returns the total loss and a dictionary of intermediate metrics.
-
-        eval_compatibility(batch: dict, device: str) -> torch.Tensor
-            Computes compatibility scores for a batch during evaluation.
-
-    The trainer handles the full training loop, including gradient updates,
-    logging, validation, and checkpointing.
-    """
+    """Train models implementing train_compatibility and eval_compatibility."""
 
     def train(self) -> None:
         """Run the full training loop."""

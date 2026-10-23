@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-"""
-Main entry point for outfit recommendation tasks.
+"""Training and evaluation for outfit recommendation."""
 
-This script handles both training and evaluation of outfit compatibility models
-using a clean registry-based architecture.
-"""
+import sys
 
 import hydra
 from omegaconf import DictConfig
@@ -24,6 +21,7 @@ def main(cfg: DictConfig) -> None:
     """
     utils.print_config(cfg, save_cfg=True)
     task = cfg.task
+    utils.seed_everything(int(task.get("seed", 0)))
     name = task.name
     model = None
 
@@ -57,4 +55,6 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
+    if sys.version_info >= (3, 14):
+        raise SystemExit("Use Python 3.11 for this project: Hydra 1.3's CLI does not support Python 3.14.")
     main()

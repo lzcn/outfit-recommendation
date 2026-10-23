@@ -5,13 +5,13 @@ numpy>=1.23
 scikit-learn>=1.1
 
 # Configuration & CLI
-hydra-core>=1.3
-omegaconf>=2.3
+hydra-core>=1.3.2,<1.4
+omegaconf>=2.3,<2.4
+huggingface-hub>=1.0
 
 # Training utilities
 tqdm
 einops
-torchutils
 
 # Data loading
 lmdb

@@ -1,0 +1,6 @@
+defaults:
+  - base
+  - backbone: resnet34
+  - _self_
+
+_target_: models.model_r.CompatibilityModel

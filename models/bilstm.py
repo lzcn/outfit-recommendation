@@ -5,13 +5,13 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchutils
 from omegaconf import OmegaConf
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from tqdm import tqdm
 
 import datasets
 import utils
+from models.losses import contrastive_loss
 
 logger = utils.get_logger(__name__)
 
@@ -57,7 +57,7 @@ class ContrastiveEmbeddingLoss(nn.Module):
             mask = None if types is None else (types.view(-1, 1) != -1) * 1.0
         i_feat = self.Wi(i_data).view(-1, self.c_dim)
         t_feat = self.Wt(t_data).view(-1, self.c_dim)
-        loss = torchutils.loss.contrastive_loss(i_feat, t_feat, self.margin, mask=mask, reduction="mean")
+        loss = contrastive_loss(i_feat, t_feat, self.margin, mask=mask, reduction="mean")
         return loss
 
 
@@ -152,7 +152,7 @@ class BiLSTM(nn.Module):
         # add zero-embedding
         feat_list.append(np.zeros(self.embed_dim, dtype=np.float32))
         feat_list = np.vstack(feat_list)
-        feat_list = torch.from_numpy(feat_list).cuda()
+        feat_list = torch.from_numpy(feat_list).to(next(self.parameters()).device)
         self.name_dict = name_dict
         self.feat_list = feat_list
 
@@ -195,7 +195,7 @@ class BiLSTM(nn.Module):
         # add zero-embedding
         feat_list.append(np.zeros(self.embed_dim, dtype=np.float32))
         feat_list = np.vstack(feat_list)
-        feat_list = torch.from_numpy(feat_list).cuda()
+        feat_list = torch.from_numpy(feat_list).to(device)
         self.name_dict = name_dict
         self.feat_list = feat_list
 

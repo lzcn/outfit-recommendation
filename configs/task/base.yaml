@@ -2,6 +2,8 @@ defaults:
   - optional eval: ??
 stage: test
 load_pretrained: null
+load_strict: true
+seed: 0
 num_runs: 5
 device: 0
 name: base

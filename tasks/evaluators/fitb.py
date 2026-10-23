@@ -1,19 +1,11 @@
-"""
-Fill-In-The-Blank (FITB) evaluator for outfit compatibility.
-
-This module implements the FITB evaluation task, where the model must
-select the correct item from multiple choices to complete an outfit.
-"""
+"""Accuracy for fill-in-the-blank outfit questions."""
 
 import numpy as np
 from tqdm import tqdm
 
-import utils
 from datasets import OutfitDataModule
 from tasks.evaluators.base import BaseEvaluator
 from tasks.registries import register_evaluator
-
-logger = utils.get_logger(__name__)
 
 
 @register_evaluator("fitb")

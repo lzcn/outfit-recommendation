@@ -13,10 +13,10 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-def load_pretrained(net: nn.Module, path_or_state_dict, weights_only=False, strict=False) -> nn.Module:
+def load_pretrained(net: nn.Module, path_or_state_dict, weights_only=True, strict=False) -> nn.Module:
     """Load weights loosely or strictly and log any mismatches."""
 
-    if isinstance(path_or_state_dict, str):
+    if isinstance(path_or_state_dict, (str, os.PathLike)):
         logger.info("Loading pre-trained model from %s.", path_or_state_dict)
         state_dict = torch.load(path_or_state_dict, map_location="cpu", weights_only=weights_only)
     else:
@@ -25,9 +25,17 @@ def load_pretrained(net: nn.Module, path_or_state_dict, weights_only=False, stri
 
     real_net = net.module if isinstance(net, (nn.DataParallel, nn.parallel.DistributedDataParallel)) else net
 
+    if "state_dict" in state_dict:
+        state_dict = state_dict["state_dict"]
+
     # delete "module." if the model is wrapped by DataParallel or DistributedDataParallel
     if any(k.startswith("module.") for k in state_dict.keys()):
         state_dict = {k.replace("module.", "", 1): v for k, v in state_dict.items()}
+
+    if strict:
+        real_net.load_state_dict(state_dict, strict=True)
+        logger.info("All checkpoint keys and shapes matched (strict loading).")
+        return net
 
     net_param = real_net.state_dict()
     unmatched_keys = [k for k, v in state_dict.items() if k in net_param and v.shape != net_param[k].shape]
@@ -59,16 +67,10 @@ def load_pretrained(net: nn.Module, path_or_state_dict, weights_only=False, stri
 class ModelSaver:
     """Save model checkpoints to disk with automatic best model tracking.
 
-    Filename format: {filename_prefix}[_{score_name}]_{score:.4f}[_{epoch}].pt
-    Optional: {filename_prefix}_latest.pt
-    Optional: {filename_prefix}_best.pt
-
-    Files are sorted by score for easy tab completion.
-
     Args:
         dirname (str): Directory for checkpoints.
         filename_prefix (str, optional): Filename prefix.
-        score_name (str, optional): Metric name for filename. Defaults to "epoch".
+        score_name (str, optional): Optional metric name included in checkpoint filenames.
         n_saved (int, optional): Number of models to keep. Defaults to 5.
         save_latest (bool, optional): Save latest model. Defaults to False.
         save_best (bool, optional): Save best model copy. Defaults to False.

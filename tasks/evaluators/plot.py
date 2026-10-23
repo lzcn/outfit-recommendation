@@ -1,9 +1,4 @@
-"""
-Outlier detection evaluator for outfit compatibility.
-
-This module implements the outlier detection task, where the model must
-identify which items don't fit well in an outfit.
-"""
+"""Plots of item-level outlier scores."""
 
 from typing import Any, Optional
 
@@ -24,11 +19,7 @@ logger = utils.get_logger(__name__)
 
 @register_evaluator("outlier_plotter")
 class OutlierPlotter(BaseEvaluator):
-    """Outlier detection evaluator.
-
-    Model must implement: eval_outlier(batch, device) -> Tensor[batch_size, num_items]
-    Returns outlier scores where higher = more likely to be outlier.
-    """
+    """Export outfit images and item-level outlier scores as PDF figures."""
 
     def __init__(self, cfg: DictConfig, model: Optional[Any] = None):
         self.cfg = cfg

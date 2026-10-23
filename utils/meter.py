@@ -1,14 +1,4 @@
-"""The :mod:`torchutils.meter` provides several average meters.
-
-The supported data readers are:
-
-- :class:`~Meter`: Average meter for single metric.
-- :class:`~BundleMeter`: Average meter for metrics with same window size.
-- :class:`~GroupMeter`: Average meter for different group of metrics with different window size.
-
-If `win_size==0`, then global average will be conducted.
-
-"""
+"""Weighted running averages for individual and grouped metrics."""
 
 from collections import deque
 
@@ -89,7 +79,7 @@ class Meter:
 
         .. code-block:: python
 
-            from torchutils.meter import Meter
+            from utils.meter import Meter
             # history meter with window size 10
             meter = Meter(10)
             # update data
@@ -97,10 +87,10 @@ class Meter:
             # show values
             print(meter.avg, meter.val)
 
-    Usually, the during testing phase, we need a global average meter::
+    Use the default window size to average over the full evaluation::
 
-        from torchutils.meter import Meter
-        # history meter with window size 10
+        from utils.meter import Meter
+        # average over all updates
         meter = Meter()
         for x, y in loader:
             # get loss
@@ -141,7 +131,7 @@ class Meter:
 
 
 class BundleMeter:
-    """Manage a bunle of meters with the same window size.
+    """Manage metrics with the same averaging window.
 
     Args:
         win_size (int): window size for all meters.

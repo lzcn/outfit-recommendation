@@ -5,7 +5,7 @@ defaults:
   - override /data/dataset@data.train.dataset: outlier_randreplace
   - override /data/dataset@data.valid.dataset: outlier_randreplace
   - override /data/dataset@data.test.dataset: outlier_randreplace
-  - override /model: lpae/model_d
+  - override /model: model_d
   - override /optimizer: sgd
   - override /scheduler: plateau
   - override /task: outlier

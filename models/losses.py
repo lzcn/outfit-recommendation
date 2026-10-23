@@ -16,13 +16,10 @@ def contrastive_loss(s_data: torch.Tensor, t_data: torch.Tensor, margin=0.2, mas
 
     We compute the similarity using cosine similarity.
 
-    Todo:
-        to support more similarity.
-
     Args:
         s_data (torch.Tensor) : array of shape :math:`(N, D)`, source features
         t_data (torch.Tensor) : array of shape :math:`(N, D)`, target features
-        margin (float, optional): the margin :math:`m`. Defaults to 0.1.
+        margin (float, optional): the margin :math:`m`. Defaults to 0.2.
         mask (None, optional): array of shape :math:`(N)`. mask for samples.
         reduction (str, optional): Defaults to ``"mean"``. Specifies the reduction to
             apply to the output:

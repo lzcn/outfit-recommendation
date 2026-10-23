@@ -15,82 +15,18 @@ logger = utils.logger.get_logger(__name__)
 
 
 class OutfitDataModule(object):
-    """Unified data loader for outfit recommendation tasks.
+    """Build an outfit dataset and a PyTorch DataLoader.
 
-    Provides a consistent interface for loading outfit datasets across
-    multiple modes: pairwise, pointwise, fill-in-the-blank (FITB),
-    retrieval, and others. Automatically constructs the dataset
-    and DataLoader for training or evaluation.
+    Tuple files are stored under ``{data_root}/{partition}/``:
 
-    FITB and Retrieval modes enforce deterministic ordering for
-    accurate metric computation. Other modes use standard positive
-    and negative tuples.
+    - Standard modes read ``{phase}_pos`` and optional ``{phase}_neg``.
+    - FITB with fixed candidates reads ``{phase}_pos_fitb`` and
+      ``{phase}_neg_fitb``; online FITB reads ``{phase}_pos``.
+    - Retrieval reads ``{phase}_pos``.
 
-    Parameters
-    ----------
-    data_root : str
-        Root directory of the dataset.
-    partition : str, default="original"
-        Subdirectory or split name that contains tuple files.
-    dataset : OutfitDataConfig, optional
-        Configuration describing how the dataset should be constructed.
-        If None, defaults to an empty OutfitDataConfig.
-    readers : list of DataReaderConfig, optional
-        List of data reader configurations defining how features are read.
-        If None, defaults to a single DataReaderConfig.
-    phase : str, default="train"
-        Dataset phase indicator ("train", "val", "test").
-    num_users : int, default=1
-        Number of users for personalized recommendation settings.
-    batch_size : int, default=16
-        Batch size used for DataLoader.
-    num_workers : int, default=4
-        Number of worker threads for DataLoader.
-    shuffle : bool, default=False
-        Whether to shuffle data. Overridden internally for FITB/Retrieval modes.
-    drop_last : bool, default=False
-        Whether to drop the last incomplete batch.
-    **kwargs : dict
-        Additional arguments for flexibility in extended subclasses.
-
-    Attributes
-    ----------
-    dataset : torch.utils.data.Dataset
-        Constructed dataset instance.
-    dataloader : torch.utils.data.DataLoader
-        DataLoader providing batched access to the dataset.
-    num_batch : int
-        Number of batches per epoch.
-    num_sample : int
-        Total number of samples in the dataset.
-    _extra_info : dict
-        Internal storage for auxiliary statistics such as
-        number of FITB questions or retrieval outfits.
-
-    Notes
-    -----
-    Required files vary by dataset mode:
-
-    1. Default modes (Pairwise, Pointwise, NPair, Triplet, Outlier):
-        {partition}/{phase}_pos
-        {partition}/{phase}_neg
-        Standard positive and negative outfit tuples.
-
-    2. FITB (Fill-In-The-Blank):
-        Offline (neg_mode == "Fix"):
-            {partition}/{phase}_pos_fitb
-            {partition}/{phase}_neg_fitb
-        Online (other neg_modes):
-            {partition}/{phase}_pos
-        FITB enforces shuffle=False for deterministic evaluation,
-        allowing tuples to be reshaped for accuracy computation.
-
-    3. Retrieval:
-        {partition}/retrieval
-        Retrieval enforces shuffle=False for consistent ranking.
-
-    Common companion file:
-        {data_root}/items.json - defines item key mapping for readers.
+    The same partition directory contains ``items.json`` for item-key lookup.
+    FITB and retrieval disable shuffling to preserve candidate order.
+    ``num_workers`` controls DataLoader worker processes.
     """
 
     def __init__(

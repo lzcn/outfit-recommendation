@@ -1,9 +1,4 @@
-"""
-Compatibility evaluator for outfit compatibility prediction.
-
-This module implements the evaluator for the compatibility task,
-which measures how well the model predicts outfit compatibility.
-"""
+"""Per-user AUC, NDCG, and ranking loss for outfit compatibility."""
 
 from tqdm import tqdm
 
@@ -16,10 +11,7 @@ logger = utils.get_logger(__name__)
 
 @register_evaluator("compatibility")
 class CompatibilityEvaluator(BaseEvaluator):
-    """Evaluator for outfit compatibility prediction task.
-
-    Computes metrics like AUC, NDCG, and loss for compatibility prediction.
-    """
+    """Compute AUC, NDCG, and BPR loss separately for each user."""
 
     @staticmethod
     def compute(model, dataloader, device, run=0) -> dict:
@@ -35,5 +27,4 @@ class CompatibilityEvaluator(BaseEvaluator):
         for batch in tqdm(dataloader, desc="Evaluating compatibility"):
             scores = model.eval_compatibility(batch, device)
             metric.update((scores.tolist(), batch["label"].tolist(), batch["uidx"].tolist()))
-        result = metric.compute()
-        return result
+        return metric.compute()

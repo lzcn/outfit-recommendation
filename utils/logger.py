@@ -1,25 +1,4 @@
-"""Logging utilities for distributed PyTorch training.
-
-Provides rank-zero-only logging to prevent message duplication in
-multi-GPU environments. Works with standard Python logging, Hydra,
-and other configuration frameworks.
-
-Example::
-
-    from torchutils.logger import config, get_logger, register_formatter
-
-    # Basic usage
-    config(level="INFO", log_file="app.log")
-    logger = get_logger(__name__)
-    logger.info("Training started")
-
-    # Custom formatter
-    register_formatter("custom", {
-        "format": "%(asctime)s: %(message)s",
-        "datefmt": "%H:%M:%S"
-    })
-    config(formatter="custom")
-"""
+"""Logging helpers with rank-zero filtering."""
 
 import logging
 from logging.config import dictConfig

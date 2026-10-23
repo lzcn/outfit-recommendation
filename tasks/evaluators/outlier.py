@@ -1,9 +1,4 @@
-"""
-Outlier detection evaluator for outfit compatibility.
-
-This module implements the outlier detection task, where the model must
-identify which items don't fit well in an outfit.
-"""
+"""Outlier item detection accuracy."""
 
 import numpy as np
 from tqdm import tqdm

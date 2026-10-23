@@ -20,7 +20,7 @@ class ConditionalBatchNorm2d(nn.Module):
         num_features (int): :math:`C` from an expected input of size :math:`(N, C, H, W)`
         num_classes (int): :math:`S` the number of conditions
         eps (float, optional): a value added to the denominator for numerical stability.
-            Default to 1e-5.
+            Default to 1e-4.
         momentum (float, optional): the value used for the ``running_mean`` and
             ``running_var`` computation. Can be set to ``None`` for cumulative
             moving average (i.e. simple average). Default to 0.1.
@@ -30,7 +30,7 @@ class ConditionalBatchNorm2d(nn.Module):
 
         >>> m = layers.ConditionalBatchNorm2d(100, 10)
         >>> input = torch.randn(20, 100, 35, 45)
-        >>> c = torchutils.one_hot(torch.randint(10, size=(20, 1)), 10)
+        >>> c = torch.nn.functional.one_hot(torch.randint(10, (20,)), 10).float()
         >>> output = m(input, c)
 
     """
@@ -59,7 +59,7 @@ class ConditionalBatchNorm2d(nn.Module):
 
 
 class LinerLN(nn.Module):
-    """Linear layer with LayerNorm, ReLU, and Dropout.
+    """Linear projection followed by ReLU, LayerNorm, and dropout.
 
     Args:
         in_features: size of each input sample
@@ -94,7 +94,7 @@ class LinerLN(nn.Module):
 
 
 class VisualSemanticEmbedding(nn.Module):
-    """The visual-semantic embedding layer with :meth:`torchutils.loss.contrastive_loss`
+    """The visual-semantic embedding layer with :func:`models.losses.contrastive_loss`
 
     Cosine similarity is used.
 

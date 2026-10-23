@@ -33,13 +33,13 @@ class NewUserTrainer(BaseTrainer):
 
         pretrained = self.cfg.task.get("load_pretrained")
         if pretrained:
-            utils.load_pretrained(self.model, pretrained)
+            utils.load_pretrained(self.model, pretrained, strict=self.cfg.task.get("load_strict", True))
         logger.info(self.model)
 
     def _setup_training(self) -> None:
         """Only setup optimizer and scheduler for finetuning."""
         if self.cfg.task.new_user == "finetune":
-            self.model.new_user_finetune()
+            self.model.setup_new_user_finetune()
             super()._setup_training()
 
     def _setup_data_loaders(self) -> None:
@@ -64,8 +64,7 @@ class NewUserTrainer(BaseTrainer):
         device = cfg.device
         num_outfits = cfg.get("n_outfits", 1)
         if cfg.new_user == "finetune":
-            self.model.new_user_finetune()
-            self.super().train()
+            super().train()
         if cfg.new_user == "closed_form":
             self.model.build_new_user_closed_form(self.train_loader, device, num_outfits)
         if cfg.new_user == "adhoc":

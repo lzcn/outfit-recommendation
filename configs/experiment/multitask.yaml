@@ -1,13 +1,12 @@
 # @package _global_
 defaults:
-  - override /data: polyvore-519
+  - override /data: maryland_polyvore
   - override /data/readers: resnet34_nn
-  - override /data/dataset@data.train.dataset: npair_randmix
+  - override /data/dataset@data.train.dataset: multitask
   - override /data/dataset@data.valid.dataset: pointwise_randmix
   - override /data/dataset@data.test.dataset: pointwise_randmix
-  - override /model: lpae/model_r
+  - override /model: model_m
   - override /optimizer: sgd
   - override /scheduler: plateau
-  - override /task: compatibility
-  - override /task/eval: [compatibility, fitb]
+  - override /task: multitask
   - _self_

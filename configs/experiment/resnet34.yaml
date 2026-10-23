@@ -2,11 +2,11 @@
 defaults:
   - override /data: maryland_polyvore
   - override /data/readers: resnet34_nn
-  - override /data/dataset@data.train.dataset: multitask
+  - override /data/dataset@data.train.dataset: npair_randmix
   - override /data/dataset@data.valid.dataset: pointwise_randmix
   - override /data/dataset@data.test.dataset: pointwise_randmix
-  - override /model: lpae/model_m
+  - override /model: model_r
   - override /optimizer: sgd
   - override /scheduler: plateau
-  - override /task: multitask
+  - override /task: base
   - _self_

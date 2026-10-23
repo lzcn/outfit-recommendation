@@ -1,9 +1,4 @@
-"""
-Base classes for tasks (trainers and evaluators).
-
-This module provides abstract base classes that define the common interface
-and functionality for all trainers and evaluators.
-"""
+"""Model setup and hook calls for configured tasks."""
 
 from abc import ABC
 from typing import Any, Optional

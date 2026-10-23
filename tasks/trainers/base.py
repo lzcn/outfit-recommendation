@@ -1,9 +1,4 @@
-"""
-Base trainer class for all training tasks.
-
-This module provides the abstract base class for all trainers, handling
-common setup like optimizer, scheduler, data loaders, and model checkpointing.
-"""
+"""Training, validation, and checkpoint handling."""
 
 from abc import ABC
 from typing import Any
@@ -55,7 +50,7 @@ class BaseTrainer(ABC):
 
         pretrained = self.cfg.task.get("load_pretrained")
         if pretrained:
-            utils.load_pretrained(self.model, pretrained)
+            utils.load_pretrained(self.model, pretrained, strict=self.cfg.task.get("load_strict", True))
 
     def _setup_training(self) -> None:
         """Setup optimizer and scheduler."""
@@ -109,7 +104,7 @@ class BaseTrainer(ABC):
         assert best_checkpoint is not None, "No best model checkpoint found!"
 
         model = instantiate(self.cfg.model).to(self.cfg.task.device)
-        utils.load_pretrained(model, best_checkpoint)
+        utils.load_pretrained(model, best_checkpoint, strict=True)
 
         return model
 
@@ -190,11 +185,11 @@ class BaseTrainer(ABC):
     def validate_epoch(self) -> dict:
         """Run validation and return computed metrics."""
         task = self.cfg.task
-        eval_list = task.get("eval", {})
+        eval_list = task.get("eval") or {}
         # evaluate same task using single evaluator
         if len(eval_list) == 0:
             evaluator: BaseEvaluator = get_evaluator(task.name, cfg=self.cfg)
-            metrics = evaluator.compute(self.model, self.data.valid, task.device)
+            metrics = evaluator.compute(self.model, self.valid_loader, task.device)
             return metrics
         # evaluate multiple evaluators
         metrics = {}

@@ -1,9 +1,4 @@
-"""
-Fill-In-The-Blank (FITB) evaluator for outfit compatibility.
-
-This module implements the FITB evaluation task, where the model must
-select the correct item from multiple choices to complete an outfit.
-"""
+"""Grouped fill-in-the-blank evaluation."""
 
 import torch
 from tqdm import tqdm
@@ -18,11 +13,7 @@ logger = utils.get_logger(__name__)
 
 @register_evaluator("group_fitb")
 class GroupFITBEvaluator(BaseEvaluator):
-    """Fill-In-The-Blank evaluator for outfit compatibility.
-
-    Evaluates the model's ability to select the correct item to complete
-    an outfit from multiple choices.
-    """
+    """Evaluate grouped fill-in-the-blank outfit questions."""
 
     @staticmethod
     def compute(model, dataloader: OutfitDataModule, device, run=0):

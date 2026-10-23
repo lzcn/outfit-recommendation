@@ -916,6 +916,9 @@ class MultiTaskDataset(BaseOutfitData):
 
         self._num_threads = 0
         self._multiprocessing = False
+        data_param = dict(data_param or {})
+        num_answers = int(data_param.get("num_answers", 32))
+        worker_param = {"mp_workers": int(data_param.get("mp_workers", 0))}
 
         self.outlier = OutlierOutfit(
             datum,
@@ -932,17 +935,17 @@ class MultiTaskDataset(BaseOutfitData):
             pos_data=pos_data,
             neg_data=neg_data,
             phase=phase,
-            data_param={"mp_workers": 4},
+            data_param=worker_param,
             pos_mode=None,
             neg_mode="RandomMix",
-            neg_param={"ratio": 32, "type_aware": True},
+            neg_param={"ratio": int((neg_param or {}).get("ratio", 32)), "type_aware": True},
         )
         self.completion = OutfitCompletion(
             datum,
             pos_data=pos_data,
             neg_data=neg_data,
             phase=phase,
-            data_param={"num_answers": 32, "type_aware": True, "mp_workers": 4},
+            data_param={"num_answers": num_answers, "type_aware": True, **worker_param},
             pos_mode=None,
             neg_mode=None,
             neg_param=None,
@@ -952,10 +955,10 @@ class MultiTaskDataset(BaseOutfitData):
             pos_data=pos_data,
             neg_data=neg_data,
             phase=phase,
-            data_param={"mp_workers": 4},
+            data_param=worker_param,
             pos_mode="Fix",
             neg_mode="FITB",
-            neg_param={"ratio": 31, "type_aware": True},
+            neg_param={"ratio": num_answers - 1, "type_aware": True},
         )
         self.next()
         assert len(self.outfits) == len(self.completion) == len(self.outlier)
