@@ -24,7 +24,8 @@ class OutfitDataModule(object):
       ``{phase}_neg_fitb``; online FITB reads ``{phase}_pos``.
     - Retrieval reads ``{phase}_pos``.
 
-    The same partition directory contains ``items.json`` for item-key lookup.
+    An optional ``items.json`` in the partition maps item indices to keys.
+    Without that file, item IDs are used directly as string keys.
     FITB and retrieval disable shuffling to preserve candidate order.
     ``num_workers`` controls DataLoader worker processes.
     """

@@ -29,8 +29,8 @@ Use Python 3.11 with PyTorch and torchvision.
 ```bash
 python -m pip install -r requirements.txt
 hf download lzcn/outfit-datasets --repo-type dataset \
-  --revision 69614542ed4e696bb39fa1e029afe4e9ce134cd8 \
-  --local-dir data --exclude "*/features/images/*"
+  --revision ad5153b70b0b2a8a70f488eae6badc9044fabce5 \
+  --local-dir data --exclude "*/features/images*/*"
 ```
 
 The Hugging Face dataset includes processed outfit splits and pre-extracted ResNet-34 features. Three pretrained **Model-r** checkpoints are included in [`weights/`](weights/):
@@ -40,6 +40,15 @@ The Hugging Face dataset includes processed outfit splits and pre-extracted ResN
 | Polyvore-U519 (`polyvore-519`) | [model-r-polyvore-519.pt](weights/model-r-polyvore-519.pt) | `polyvore-32` |
 | Polyvore-U630 (`polyvore-630`) | [model-r-polyvore-630.pt](weights/model-r-polyvore-630.pt) | `polyvore-53` |
 | IQON-550 (`iqon-550`) | [model-r-iqon-550.pt](weights/model-r-iqon-550.pt) | `iqon-58` |
+
+Original datasets and papers:
+
+| Dataset | Original paper |
+| --- | --- |
+| Polyvore-U | Lu et al., [Learning Binary Code for Personalized Fashion Recommendation](https://openaccess.thecvf.com/content_CVPR_2019/papers/Lu_Learning_Binary_Code_for_Personalized_Fashion_Recommendation_CVPR_2019_paper.pdf), CVPR 2019 |
+| IQON-3000 | Song et al., [GP-BPR: Personalized Compatibility Modeling for Clothing Matching](https://xuemengsong.github.io/fp506-songA.pdf), ACM MM 2019 |
+| Maryland Polyvore | Han et al., [Learning Fashion Compatibility with Bidirectional LSTMs](https://arxiv.org/abs/1707.05691), ACM MM 2017 |
+| Polyvore Outfits | Vasileva et al., [Learning Type-Aware Embeddings for Fashion Compatibility](https://openaccess.thecvf.com/content_ECCV_2018/html/Mariya_Vasileva_Learning_Type-Aware_Embeddings_ECCV_2018_paper.html), ECCV 2018 |
 
 ## 📊 Evaluate
 

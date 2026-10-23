@@ -52,7 +52,7 @@ class Datum(object):
         self.reader = reader
 
     def get_key(self, item_ids: List, item_types: List, max_size: int = 0) -> List[str]:
-        """Return keys for data readerÎ
+        """Return keys for the data reader.
 
         Args:
             item_ids (List): item list
